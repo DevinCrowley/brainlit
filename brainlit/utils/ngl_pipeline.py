@@ -6,6 +6,7 @@ import SimpleITK as sitk
 from cloudvolume import CloudVolume, view
 from cloudvolume.lib import Bbox
 
+
 class NeuroglancerSession:
     """
     Utility class which pulls and pushes data.
@@ -35,11 +36,12 @@ class NeuroglancerSession:
     scales : list
         The resolution of the volume at the specified mip, given as [x, y, z].
     """
+
     def __init__(self, url="s3://mouse-light-viz/precomputed_volumes/brain1", mip=1):
         self.url = url
         self.cv = CloudVolume(self.url, parallel=True)
         self.mip = mip
-        self.chunk_size = self.cv.info['scales'][self.mip]['chunk_sizes'][0]
+        self.chunk_size = self.cv.info["scales"][self.mip]["chunk_sizes"][0]
         self.scales = self.cv.scales[self.mip]["resolution"]
 
     def _get_voxel(self, seg_id, v_id):
@@ -86,7 +88,11 @@ class NeuroglancerSession:
         voxel = self._get_voxel(seg_id, v_id)
         bounds = Bbox(voxel, voxel).expand_to_chunk_size(self.chunk_size)
         seed = bounds.to_list()
-        shape = [self.chunk_size[0]*nx, self.chunk_size[1]*ny, self.chunk_size[2]*nz]
+        shape = [
+            self.chunk_size[0] * nx,
+            self.chunk_size[1] * ny,
+            self.chunk_size[2] * nz,
+        ]
         bounds = Bbox(np.subtract(seed[:3], shape), np.add(seed[3:], shape))
         img = self.cv.download(bounds, mip=self.mip)
         vox_in_img = voxel - np.array(bounds.to_list()[:3])
